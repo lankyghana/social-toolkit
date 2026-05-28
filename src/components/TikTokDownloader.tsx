@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Download, Link as LinkIcon, Loader2, AlertCircle, Play, CheckCircle2, Copy } from "lucide-react";
 import axios from "axios";
@@ -13,6 +13,33 @@ interface TikTokResult {
     nickname: string;
     avatar: string;
   };
+}
+
+declare global {
+  interface Window {
+    adsbygoogle: unknown[];
+  }
+}
+
+function AdSlot({ className, slot }: { className?: string; slot: string }) {
+  useEffect(() => {
+    try {
+      window.adsbygoogle = window.adsbygoogle || [];
+      window.adsbygoogle.push({});
+    } catch {
+      // Ignore ad blocker or load errors.
+    }
+  }, []);
+
+  return (
+    <ins
+      className={`adsbygoogle${className ? ` ${className}` : ""}`}
+      style={{ display: "block" }}
+      data-ad-client="ca-pub-7048530393932855"
+      data-ad-slot={slot}
+      data-ad-format="autorelaxed"
+    />
+  );
 }
 
 export default function TikTokDownloader({ standalone = false }: { standalone?: boolean }) {
@@ -62,8 +89,8 @@ export default function TikTokDownloader({ standalone = false }: { standalone?: 
           </div>
 
           {/* Ad Slot 1 (Near Input) */}
-          <div className="h-20 bg-brand-dark/50 rounded-lg flex items-center justify-center border border-dashed border-gray-700 text-gray-600 text-xs uppercase tracking-widest">
-            Advertisement Slot
+          <div className="h-20 bg-brand-dark/50 rounded-lg flex items-center justify-center border border-dashed border-gray-700">
+            <AdSlot slot="5235133504" />
           </div>
 
           <form onSubmit={handleDownload} className="relative group">
@@ -74,7 +101,7 @@ export default function TikTokDownloader({ standalone = false }: { standalone?: 
               type="text" 
               placeholder="Paste TikTok video link here..."
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
               className="w-full h-14 bg-brand-dark border-2 border-brand-border rounded-xl pl-12 pr-32 outline-none focus:border-brand-primary transition-all text-white placeholder:text-gray-600"
             />
             <button 
@@ -116,7 +143,7 @@ export default function TikTokDownloader({ standalone = false }: { standalone?: 
             className="bg-brand-surface rounded-3xl border border-brand-border p-6 md:p-8"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="relative aspect-[9/16] max-h-[500px] bg-brand-dark rounded-2xl overflow-hidden shadow-2xl mx-auto md:mx-0">
+              <div className="relative aspect-9/16 max-h-125 bg-brand-dark rounded-2xl overflow-hidden shadow-2xl mx-auto md:mx-0">
                 <img src={result.cover} alt="Thumbnail" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                   <div className="w-16 h-16 bg-brand-primary rounded-full flex items-center justify-center text-brand-dark shadow-xl hover:scale-110 transition-transform cursor-pointer">
@@ -159,8 +186,8 @@ export default function TikTokDownloader({ standalone = false }: { standalone?: 
                 </div>
 
                 {/* Ad Slot 2 (After result) */}
-                <div className="h-24 bg-brand-dark/50 rounded-lg flex items-center justify-center border border-dashed border-gray-700 text-gray-600 text-xs uppercase tracking-widest mt-4">
-                  Advertisement Slot
+                <div className="h-24 bg-brand-dark/50 rounded-lg flex items-center justify-center border border-dashed border-gray-700 mt-4">
+                  <AdSlot slot="5235133504" />
                 </div>
               </div>
             </div>
@@ -190,8 +217,8 @@ export default function TikTokDownloader({ standalone = false }: { standalone?: 
         </section>
 
         {/* Ad Slot 3 (Content Section) */}
-        <div className="h-32 bg-brand-surface rounded-xl flex items-center justify-center border border-dashed border-gray-700 text-gray-600 text-xs uppercase tracking-widest">
-          Horizontal Advertisement Banner
+        <div className="h-32 bg-brand-surface rounded-xl flex items-center justify-center border border-dashed border-gray-700">
+          <AdSlot slot="5235133504" />
         </div>
 
         {/* SEO Content */}
