@@ -80,9 +80,15 @@ export default function TikTokDownloader({ standalone = false }: { standalone?: 
       >
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl md:text-3xl font-bold">
-              TikTok Video Downloader <span className="text-brand-primary">(No Watermark)</span>
-            </h2>
+            {standalone ? (
+              <h1 className="text-2xl md:text-3xl font-bold">
+                TikTok Video Downloader <span className="text-brand-primary">(No Watermark)</span>
+              </h1>
+            ) : (
+              <h2 className="text-2xl md:text-3xl font-bold">
+                TikTok Video Downloader <span className="text-brand-primary">(No Watermark)</span>
+              </h2>
+            )}
             <p className="text-gray-400 text-sm md:text-base">
               Download TikTok videos instantly in HD quality without watermark.
             </p>
