@@ -9,19 +9,7 @@ import axios from "axios";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function validateEnvironment() {
-  const required = ["GEMINI_API_KEY"];
-  const missing = required.filter(key => !process.env[key]);
-  if (missing.length > 0) {
-    console.error(`❌ Missing required environment variables: ${missing.join(", ")}`);
-    console.error("Please set these in your .env file");
-    process.exit(1);
-  }
-}
-
 async function startServer() {
-  validateEnvironment();
-
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
