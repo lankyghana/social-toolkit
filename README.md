@@ -22,7 +22,7 @@ Fast, free social media utility tools for creators and users, starting with a Ti
 
 ## Deployment Notes (cPanel Node.js App)
 
-- Set the startup file to `server.ts`.
+- Set the startup file to `dist-server/server.js`.
 - Run `npm install` and `npm run build` before restarting the app.
 - Ensure the app root is the folder containing `package.json`.
 "# social-toolkit" 
