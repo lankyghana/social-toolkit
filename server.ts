@@ -1,4 +1,6 @@
+import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -7,12 +9,44 @@ import axios from "axios";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function validateEnvironment() {
+  const required = ["GEMINI_API_KEY"];
+  const missing = required.filter(key => !process.env[key]);
+  if (missing.length > 0) {
+    console.error(`❌ Missing required environment variables: ${missing.join(", ")}`);
+    console.error("Please set these in your .env file");
+    process.exit(1);
+  }
+}
+
 async function startServer() {
+  validateEnvironment();
+
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
+
+  // CORS — restrict API calls to own domain in production
+  const allowedOrigins = [
+    "https://tools.lankystocks.com",
+    ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
+  ];
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Allow requests with no origin (e.g. same-origin, Postman in dev)
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      methods: ["GET", "POST"],
+    })
+  );
+
   app.use(express.json({ limit: "10kb" }));
 
   app.use((req, res, next) => {
@@ -25,6 +59,16 @@ async function startServer() {
   const rateLimitWindowMs = 60_000;
   const rateLimitMax = 30;
   const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
+
+  // Cleanup stale rate limit records every 10 minutes
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, record] of rateLimitStore) {
+      if (now - record.windowStart > rateLimitWindowMs * 10) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }, 10 * 60_000);
 
   function isRateLimited(key: string) {
     const now = Date.now();
@@ -105,18 +149,26 @@ async function startServer() {
           id: videoData.id,
           title: videoData.title,
           cover: videoData.cover,
-          origin_url: videoData.play, // This is usually the no-watermark link
+          origin_url: videoData.play, // no-watermark link
           wm_url: videoData.wmplay,
           music: videoData.music,
           author: videoData.author
         });
       } else {
         console.error("TikWM API Error:", data.msg);
-        res.status(500).json({ error: data.msg || "Failed to extract video data" });
+        res.status(502).json({
+          error:
+            data.msg ||
+            "Could not extract video data. The video may be private, deleted, or the download service is temporarily unavailable.",
+        });
       }
     } catch (error: any) {
       console.error("Error fetching TikTok data:", error.message);
-      res.status(500).json({ error: "Server error while processing request" });
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        res.status(504).json({ error: "The download service timed out. Please try again in a moment." });
+      } else {
+        res.status(502).json({ error: "The download service is temporarily unavailable. Please try again later." });
+      }
     }
   });
 
